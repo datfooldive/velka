@@ -1,0 +1,20 @@
+vars:
+  BRANCH: main
+env:
+  NODE_ENV: production
+projects:
+  - name: api
+    path: ./services/api
+    env:
+      PATH: $HOME/go/bin:$PATH
+    cmds:
+      - git pull origin ${{ .BRANCH }}
+      - go build ./...
+  - path: ~/code/web
+    deps: [api]
+    vars:
+      BRANCH: develop
+    cmds:
+      - git pull origin ${{ .BRANCH }}
+      - npm install
+      - npm run build

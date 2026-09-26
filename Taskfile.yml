@@ -1,0 +1,28 @@
+version: '3'
+
+vars:
+  BIN: velka
+
+tasks:
+  build:
+    desc: Dev build
+    cmds:
+      - go build -o {{.BIN}} .
+
+  release:
+    desc: Release build
+    env:
+      CGO_ENABLED: 0
+    cmds:
+      - go build -trimpath -ldflags="-s -w" -o {{.BIN}} .
+
+  install:
+    desc: Install
+    deps: [release]
+    cmds:
+      - install -Dm755 {{.BIN}} "$HOME/.local/bin/{{.BIN}}"
+
+  clean:
+    desc: Remove built binary
+    cmds:
+      - rm -f {{.BIN}}

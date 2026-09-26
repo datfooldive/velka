@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"maps"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
@@ -284,7 +283,7 @@ func runProject(ctx context.Context, p Project, prefix string) result {
 
 	for _, c := range p.Cmds {
 		w.println(paint("1", "$ "+c))
-		cmd := exec.CommandContext(ctx, "sh", "-c", c)
+		cmd := shellCommand(ctx, c)
 		cmd.Dir = p.Path
 		cmd.Env = os.Environ()
 		for k, v := range p.Env {
@@ -292,8 +291,6 @@ func runProject(ctx context.Context, p Project, prefix string) result {
 		}
 		cmd.Stdout = w
 		cmd.Stderr = w
-		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-		cmd.Cancel = func() error { return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL) }
 		cmd.WaitDelay = 2 * time.Second
 		err := cmd.Run()
 		w.flush()

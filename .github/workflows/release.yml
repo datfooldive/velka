@@ -24,14 +24,19 @@ jobs:
           CGO_ENABLED: 0
         run: |
           mkdir -p dist
-          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
             os=${target%/*}
             arch=${target#*/}
             name=velka_${os}_${arch}
-            GOOS=$os GOARCH=$arch go build -trimpath -ldflags="-s -w" -o build/$name/velka .
-            tar -czf dist/$name.tar.gz -C build/$name velka
+            if [ "$os" = windows ]; then
+              GOOS=$os GOARCH=$arch go build -trimpath -ldflags="-s -w" -o build/$name/velka.exe .
+              (cd build/$name && zip -q ../../dist/$name.zip velka.exe)
+            else
+              GOOS=$os GOARCH=$arch go build -trimpath -ldflags="-s -w" -o build/$name/velka .
+              tar -czf dist/$name.tar.gz -C build/$name velka
+            fi
           done
-          cd dist && sha256sum *.tar.gz > checksums.txt
+          cd dist && sha256sum * > checksums.txt
 
       - name: Changelog
         run: |
